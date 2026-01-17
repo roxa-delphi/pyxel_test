@@ -5,26 +5,27 @@ import pyxel
 
 class Chara:
 
-  def __init__(self, x, y, move_x, move_y, res_p = 0):
-    self.width   = 16
-    self.height  = 16
-    self.x       = x
-    self.y       = y
-    self.move_x  = move_x
-    self.move_y  = move_y
-    self.res_num = 0
+  def __init__(self, x, y, move_x, move_y):
+    self.width    = 16
+    self.height   = 16
+    self.x        = x
+    self.y        = y
+    self.move_x   = move_x
+    self.move_y   = move_y
+    self.res_num  = 0
 
-    self.res_max = 0
-    self.res_p   = 0
-    self.res_u   = []
-    self.res_v   = []
-    self.res_w   = []
-    self.res_h   = []
-    self.res_col = []
-    self.fire_x  = []
-    self.fire_y  = []
+    self.res_max  = 0
+    self.res_page = []
+    self.res_u    = []
+    self.res_v    = []
+    self.res_w    = []
+    self.res_h    = []
+    self.res_col  = []
+    self.fire_x   = []
+    self.fire_y   = []
 
-  def add_res(self, u, v, w, h, col, fire_x = 0, fire_y = 0):
+  def add_res(self, page, u, v, w, h, col, fire_x = 0, fire_y = 0):
+    self.res_page.append(page)
     self.res_u.append(u)
     self.res_v.append(v)
     self.res_w.append(w)
@@ -54,14 +55,14 @@ class App:
 
     # player settings
     self.player = Chara(40, 80, 8, 8)
-    self.player.add_res(0, 0, 16, 16, 0, 16, 7)
-    self.player.add_res(16, 0, 16, 16, 0, 16, 7)
+    self.player.add_res(0, 0, 0, 16, 16, 0, 16, 7)
+    self.player.add_res(0, 16, 0, 16, 16, 0, 16, 7)
 
     # player missile settings
     for i in range(0, self.p_miss_max):
       self.p_miss_f.append(False)
       self.p_miss.append(Chara(0, 0, 10, 0))
-      self.p_miss[i].add_res(38, 7, 4, 2, 12)
+      self.p_miss[i].add_res(0, 38, 7, 4, 2, 12)
 
 
     pyxel.init(self._width, self._height, title="test", fps=15)
@@ -70,22 +71,22 @@ class App:
 
 
   def update(self):
-    if pyxel.btnp(pyxel.KEY_Q):
+    if pyxel.btnp(pyxel.KEY_Q) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
       pyxel.quit()
 
-    if pyxel.btnp(pyxel.KEY_UP):
+    if pyxel.btnp(pyxel.KEY_UP) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
       if self.player.y >= self.player.move_y:
         self.player.y -= self.player.move_y
     
-    if pyxel.btnp(pyxel.KEY_DOWN):
+    if pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):
       if self.player.y <= self._height - self.player.height - self.player.move_y:
         self.player.y += self.player.move_y
     
-    if pyxel.btnp(pyxel.KEY_LEFT):
+    if pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT):
       if self.player.x >= self.player.move_x:
         self.player.x -= self.player.move_x
     
-    if pyxel.btnp(pyxel.KEY_RIGHT):
+    if pyxel.btnp(pyxel.KEY_RIGHT) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT):
       if self.player.x <= self._width - self.player.width - self.player.move_x:
         self.player.x += self.player.move_x
 
@@ -97,7 +98,7 @@ class App:
         self.p_miss[i].x += self.p_miss[i].move_x
 
     # Z : fire
-    if pyxel.btnp(pyxel.KEY_Z):
+    if pyxel.btnp(pyxel.KEY_Z) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A):
       nm = -1
       for i in range(0, self.p_miss_max):
         if not self.p_miss_f[i]:
@@ -123,7 +124,7 @@ class App:
     pyxel.blt(
       self.player.x,
       self.player.y,
-      self.player.res_p,
+      self.player.res_page[self.player.res_num],
       self.player.res_u[self.player.res_num],
       self.player.res_v[self.player.res_num],
       self.player.res_w[self.player.res_num],
@@ -136,7 +137,7 @@ class App:
         pyxel.blt(
           self.p_miss[i].x,
           self.p_miss[i].y,
-          self.p_miss[i].res_p,
+          self.p_miss[i].res_page[self.p_miss[i].res_num],
           self.p_miss[i].res_u[self.p_miss[i].res_num],
           self.p_miss[i].res_v[self.p_miss[i].res_num],
           self.p_miss[i].res_w[self.p_miss[i].res_num],
