@@ -3,8 +3,40 @@
 
 import pyxel
 
+class Chara:
+
+  def __init__(self, x, y, move_x, move_y, res_p = 0):
+    self.width   = 16
+    self.height  = 16
+    self.x       = x
+    self.y       = y
+    self.move_x  = move_x
+    self.move_y  = move_y
+    self.res_num = 0
+
+    self.res_max = 0
+    self.res_p   = 0
+    self.res_u   = []
+    self.res_v   = []
+    self.res_w   = []
+    self.res_h   = []
+    self.res_col = []
+    self.fire_x  = []
+    self.fire_y  = []
+
+  def add_res(self, u, v, w, h, col, fire_x = 0, fire_y = 0):
+    self.res_u.append(u)
+    self.res_v.append(v)
+    self.res_w.append(w)
+    self.res_h.append(h)
+    self.res_col.append(col)
+    self.fire_x.append(fire_x)
+    self.fire_y.append(fire_y)
+
+    self.res_max += 1
+
+
 class App:
-  _grid   = 8
   _miss_m = 10
   _cw     = 16
   _width  = 300
@@ -12,96 +44,104 @@ class App:
 
   turn = 0
 
-  player_c = 0
-  player_x = 40
-  player_y = 80
+  player     = None
+  p_miss_max = 6
+  p_miss_f   = []
+  p_miss     = []
 
-  miss_max = 6
-  miss_f   = []
-  miss_x   = []
-  miss_y   = []
 
   def __init__(self):
-    for i in range(0, self.miss_max):
-      self.miss_f.append(False)
-      self.miss_x.append(0)
-      self.miss_y.append(0)
+
+    # player settings
+    self.player = Chara(40, 80, 8, 8)
+    self.player.add_res(0, 0, 16, 16, 0, 16, 7)
+    self.player.add_res(16, 0, 16, 16, 0, 16, 7)
+
+    # player missile settings
+    for i in range(0, self.p_miss_max):
+      self.p_miss_f.append(False)
+      self.p_miss.append(Chara(0, 0, 10, 0))
+      self.p_miss[i].add_res(38, 7, 4, 2, 12)
+
 
     pyxel.init(self._width, self._height, title="test", fps=15)
     pyxel.load("assets/test.pyxres")
-
     pyxel.run(self.update, self.draw)
+
 
   def update(self):
     if pyxel.btnp(pyxel.KEY_Q):
       pyxel.quit()
 
     if pyxel.btnp(pyxel.KEY_UP):
-      if self.player_y >= self._grid:
-        self.player_y -= self._grid
+      if self.player.y >= self.player.move_y:
+        self.player.y -= self.player.move_y
     
     if pyxel.btnp(pyxel.KEY_DOWN):
-      if self.player_y <= self._height - self._grid * 2:
-        self.player_y += self._grid
+      if self.player.y <= self._height - self.player.height - self.player.move_y:
+        self.player.y += self.player.move_y
     
     if pyxel.btnp(pyxel.KEY_LEFT):
-      if self.player_x >= self._grid:
-        self.player_x -= self._grid
+      if self.player.x >= self.player.move_x:
+        self.player.x -= self.player.move_x
     
     if pyxel.btnp(pyxel.KEY_RIGHT):
-      if self.player_x <= self._width - self._grid * 2:
-        self.player_x += self._grid
+      if self.player.x <= self._width - self.player.width - self.player.move_x:
+        self.player.x += self.player.move_x
 
     # move missile
-    for i in range(0, self.miss_max):
-      if self.miss_x[i] > self._width:
-        self.miss_f[i] = False
+    for i in range(0, self.p_miss_max):
+      if self.p_miss[i].x > self._width:
+        self.p_miss_f[i] = False
       else:
-        self.miss_x[i] += self._miss_m
+        self.p_miss[i].x += self.p_miss[i].move_x
 
     # Z : fire
     if pyxel.btnp(pyxel.KEY_Z):
       nm = -1
-      for i in range(0, self.miss_max):
-        if not self.miss_f[i]:
+      for i in range(0, self.p_miss_max):
+        if not self.p_miss_f[i]:
           nm = i
           break
       if nm != -1:
-        self.miss_f[nm] = True
-        self.miss_x[nm] = self.player_x + self._cw
-        self.miss_y[nm] = self.player_y
+        self.p_miss_f[nm] = True
+        self.p_miss[nm].x = self.player.x + self.player.fire_x[self.player.res_num]
+        self.p_miss[nm].y = self.player.y + self.player.fire_y[self.player.res_num]
 
     # player
     if self.turn % 5 == 0:
-      self.player_c = self.player_c ^ 1
+      self.player.res_num += 1
+      if self.player.res_num == self.player.res_max:
+        self.player.res_num = 0
     
     self.turn += 1
+
 
   def draw(self):
     pyxel.cls(12)
 
     pyxel.blt(
-      self.player_x,
-      self.player_y,
-      0,
-      0 if self.player_c == 0 else 16,
-      0,
-      16,
-      16,
-      12,
+      self.player.x,
+      self.player.y,
+      self.player.res_p,
+      self.player.res_u[self.player.res_num],
+      self.player.res_v[self.player.res_num],
+      self.player.res_w[self.player.res_num],
+      self.player.res_h[self.player.res_num],
+      self.player.res_col[self.player.res_num],
     )
 
-    for i in range(0, self.miss_max):
-      if self.miss_f[i]:
+    for i in range(0, self.p_miss_max):
+      if self.p_miss_f[i]:
         pyxel.blt(
-          self.miss_x[i],
-          self.miss_y[i] + 7,
-          0,
-          38,  #32
-          7,   #0
-          4,   #16
-          2,   #16
-          12,
+          self.p_miss[i].x,
+          self.p_miss[i].y,
+          self.p_miss[i].res_p,
+          self.p_miss[i].res_u[self.p_miss[i].res_num],
+          self.p_miss[i].res_v[self.p_miss[i].res_num],
+          self.p_miss[i].res_w[self.p_miss[i].res_num],
+          self.p_miss[i].res_h[self.p_miss[i].res_num],
+          self.p_miss[i].res_col[self.p_miss[i].res_num]
         )
     
 
