@@ -1,6 +1,8 @@
 #
 #
 
+import random
+import copy
 import pyxel
 from Chara import Chara
 
@@ -18,6 +20,12 @@ class App:
   p_miss_f   = []
   p_miss     = []
 
+  enemy_max  = 10
+  enemy      = []
+  enemy_f    = []
+
+  enemylist_max = 2
+  enemylist     = []
 
   def __init__(self):
 
@@ -32,6 +40,29 @@ class App:
       self.p_miss.append(Chara(0, 0, 10, 0))
       self.p_miss[i].add_res(0, 38, 23, 4, 2, 12)
 
+    # enemy list
+    en = 0
+    self.enemylist.append(Chara(0, 0, 8, 8))
+    self.enemylist[en].add_res(0, 0, 0, 16, 16, 0, 0, 7)
+    self.enemylist[en].add_res(0, 16, 0, 16, 16, 0, 0, 7)
+    self.enemylist[en].add_action(
+      [ 0, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4],
+      [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  4,  4,  4,  4,  4,  4,  4]
+    )
+
+    en += 1
+    self.enemylist.append(Chara(0, 0, 8, 8))
+    self.enemylist[en].add_res(0, 0, 0, 16, 16, 0, 0, 7)
+    self.enemylist[en].add_res(0, 16, 0, 16, 16, 0, 0, 7)
+    self.enemylist[en].add_action(
+      [ 0, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4],
+      [ 0,  0,  0,  0,  0,  0,  0,  0,  0, -4, -4, -4, -4, -4, -4, -4, -4]
+    )
+
+    # enemy
+    for i in range(0, self.enemy_max):
+      self.enemy_f.append(False)
+      self.enemy.append(None)
 
     pyxel.init(self._width, self._height, title="test", fps=15)
     pyxel.load("assets/test.pyxres")
@@ -83,12 +114,43 @@ class App:
       if self.player.res_num == self.player.res_max:
         self.player.res_num = 0
     
+    # enemy
+    if self.turn >= 20:
+      if random.random() < 0.15:
+        for i in range(0, self.enemy_max):
+          if not self.enemy_f[i]:
+            self.enemy_f[i] = True
+            self.enemy[i]   = copy.deepcopy(self.enemylist[random.randrange(0, self.enemylist_max)])
+            self.enemy[i].x = 280
+            self.enemy[i].y = random.uniform(5, self._height-100)
+            break
+
+    for i in (range(0, self.enemy_max)):
+      if self.enemy_f[i] :
+        self.enemy[i].x += self.enemy[i].charamove.x[self.enemy[i].charamove_n]
+        self.enemy[i].y += self.enemy[i].charamove.y[self.enemy[i].charamove_n]
+        if self.enemy[i].x < 0:
+          self.enemy_f[i] = False
+        if self.enemy[i].y < 0:
+          self.enemy_f[i] = False
+        if self.enemy[i].x > self._width:
+          self.enemy_f[i] = False
+        if self.enemy[i].y > self._height:
+          self.enemy_f[i] = False
+
+        self.enemy[i].charamove_n += 1
+        if self.enemy[i].charamove_n == self.enemy[i].charamove_num:
+          self.enemy[i].charamove_n = 0
+
     self.turn += 1
 
 
   def draw(self):
     pyxel.cls(12)
 
+    pyxel.text(250, 4, "Turn " + str(self.turn).zfill(6), 7)
+
+    # Player
     pyxel.blt(
       self.player.x,
       self.player.y,
@@ -100,6 +162,7 @@ class App:
       self.player.res_col[self.player.res_num],
     )
 
+    # Player missile
     for i in range(0, self.p_miss_max):
       if self.p_miss_f[i]:
         pyxel.blt(
@@ -111,6 +174,20 @@ class App:
           self.p_miss[i].res_w[self.p_miss[i].res_num],
           self.p_miss[i].res_h[self.p_miss[i].res_num],
           self.p_miss[i].res_col[self.p_miss[i].res_num]
+        )
+    
+    # Enemy
+    for i in range(0, self.enemy_max):
+      if self.enemy_f[i]:
+        pyxel.blt(
+          self.enemy[i].x,
+          self.enemy[i].y,
+          self.enemy[i].res_page[self.enemy[i].res_num],
+          self.enemy[i].res_u[self.enemy[i].res_num],
+          self.enemy[i].res_v[self.enemy[i].res_num],
+          self.enemy[i].res_w[self.enemy[i].res_num],
+          self.enemy[i].res_h[self.enemy[i].res_num],
+          self.enemy[i].res_col[self.enemy[i].res_num]
         )
     
 

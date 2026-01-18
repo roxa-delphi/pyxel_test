@@ -1,6 +1,9 @@
 #
 #
 
+from CharaMove import CharaMove
+
+
 class Chara:
 
   def __init__(self, x, y, move_x, move_y):
@@ -22,6 +25,11 @@ class Chara:
     self.fire_x   = []
     self.fire_y   = []
 
+    self.charamove_n   = 0
+    self.charamove_num = 0
+    self.charamove     = None
+
+
   def add_res(self, page, u, v, w, h, col, fire_x = 0, fire_y = 0):
     self.res_page.append(page)
     self.res_u.append(u)
@@ -33,5 +41,9 @@ class Chara:
     self.fire_y.append(fire_y)
 
     self.res_max += 1
+
+  def add_action(self, m_x, m_y):
+    self.charamove     = CharaMove(m_x, m_y)
+    self.charamove_num = len(m_x)
 
 
