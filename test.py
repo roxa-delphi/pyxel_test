@@ -138,6 +138,11 @@ class App:
         if self.enemy[i].y > self._height:
           self.enemy_f[i] = False
 
+        if self.enemy[i].charamove_n % 5 == 0:
+          self.enemy[i].res_num += 1
+          if self.enemy[i].res_num == self.enemy[i].res_max:
+           self.enemy[i].res_num = 0
+
         self.enemy[i].charamove_n += 1
         if self.enemy[i].charamove_n == self.enemy[i].charamove_num:
           self.enemy[i].charamove_n = 0
