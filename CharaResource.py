@@ -16,6 +16,10 @@ class CharaResource:
     self.res_col  = []
     self.fire_x   = []
     self.fire_y   = []
+    self.hita_llx = []
+    self.hita_lly = []
+    self.hita_urx = []
+    self.hita_ury = []
 
     self.charamove_num = 0
     self.charamove     = None
@@ -31,6 +35,12 @@ class CharaResource:
     self.fire_y.append(fire_y)
 
     self.res_max += 1
+
+  def add_hita(self, llx, lly, urx, ury):
+    self.hita_llx.append(llx)
+    self.hita_lly.append(lly)
+    self.hita_urx.append(urx)
+    self.hita_ury.append(ury)
 
   def add_action(self, m_x, m_y):
     self.charamove     = CharaMove(m_x, m_y)
