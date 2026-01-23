@@ -17,4 +17,5 @@ class Chara:
     self.res_n       = 0
     self.charamove_n = 0
 
+    self.isAlive     = True
 

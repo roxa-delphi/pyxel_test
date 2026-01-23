@@ -81,10 +81,18 @@ class App:
       self.enemylist_n.append(0)
       self.enemy.append(Chara(0, 0, 0, 0))
 
+    self.start()
+
     pyxel.init(self._width, self._height, title="test", fps=15)
     pyxel.load("assets/test.pyxres")
     pyxel.run(self.update, self.draw)
 
+
+  def start(self):
+    self.turn = 0
+    self.player.turn  = 0
+    self.player.res_n = 0
+    self.isAlive      = True
 
   def update(self):
     if pyxel.btnp(pyxel.KEY_Q) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
@@ -130,10 +138,11 @@ class App:
         self.p_miss[nm].y = self.player.y + self.playerres.fire_y[self.player.res_n]
 
     # player
-    if self.turn % 5 == 0:
+    if self.player.turn % 5 == 0:
       self.player.res_n += 1
       if self.player.res_n == self.playerres.res_max:
         self.player.res_n = 0
+    self.player.turn += 1
     
     # enemy
     if self.turn >= 20:
@@ -147,6 +156,7 @@ class App:
             self.enemy[i].turn        = 0
             self.enemy[i].res_n       = 0
             self.enemy[i].charamove_n = 0
+            self.enemy[i].isAlive     = True
             break
 
     for i in range(0, self.enemy_max):
@@ -168,7 +178,7 @@ class App:
         if self.enemy[i].charamove_n == self.enemylist[self.enemylist_n[i]].charamove_num:
           self.enemy[i].charamove_n = 0
 
-        if self.enemy[i].turn % 5 == 0:
+        if self.enemy[i].turn % 8 == 0:
           self.enemy[i].res_n += 1
           if self.enemy[i].res_n == self.enemylist[self.enemylist_n[i]].res_max :
             self.enemy[i].res_n = 0
