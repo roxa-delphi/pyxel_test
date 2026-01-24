@@ -1,48 +1,53 @@
 #
+# horizontal scroll shooting
 #
+# library
+#   pyxel
 
 import random
-import copy
 import pyxel
 from Chara import Chara
 from CharaResource import CharaResource
 
 
 class App:
-  _miss_m = 10
-  _cw     = 16
-  _width  = 300
-  _height = 200
+  _miss_m = 10		# number of missiles
+  _width  = 300		# screen width
+  _height = 200		# screen height
 
-  isStop     = False
+  isStop     = False	# Game stop
 
-  turn = 0
-  hit  = 0
+  turn = 0		# number of turn (frame)
+  hit  = 0		# number of hit
 
-  player     = None
-  playerres  = None
-  p_miss_max = 6
-  p_miss_f   = []
-  p_miss     = []
-  p_missres  = None
+  player     = None	# player character
+  playerres  = None	# player character resource
+  p_miss_max = 6	# number of player missiles
+  p_miss_f   = []	# flags of missiles
+  p_miss     = []	# missiles character
+  p_missres  = None	# missiles character resource
 
-  enemy_max   = 10
-  enemy_f     = []
-  enemy       = []
-  enemylist_n = []
+  enemy_max   = 10	# number of enemies
+  enemy_f     = []	# flags of enemy
+  enemy       = []	# enemy character
+  enemylist_n = []	# resource number of enemy list
 
-  enemymiss_max = 20
-  enemymiss_f   = []
-  enemymiss     = []
-  enemymissres  = None
+  enemymiss_max = 30	# number of enemy's missiles
+  enemymiss_f   = []	# flags of enemy's missiles
+  enemymiss     = []	# enemies charater
+  enemymissres  = None	# enemy missile resource
 
-  enemylist_max = 2
-  enemylist     = []
+  enemylist_max = 2	# number of enemy resource
+  enemylist     = []	# enemy resources
+
 
   def __init__(self):
 
+    pyxel.init(self._width, self._height, title="test", fps=15)
+    pyxel.load("assets/test.pyxres")
+
     # player settings
-    self.player = Chara(40, 80, 8, 8)
+    self.player = Chara(40, 80, 6, 6)
     self.playerres = CharaResource()
     self.playerres.add_res(0, 0, 16, 16, 16, 0, 16, 7)
     self.playerres.add_res(0, 16, 16, 16, 16, 0, 16, 7)
@@ -101,13 +106,11 @@ class App:
     self.enemymissres.add_hita(0, 0, 1, 1)
     for i in range(0, self.enemymiss_max):
       self.enemymiss_f.append(False)
-      self.enemymiss.append(Chara(0, 0, 0, 0))
+      self.enemymiss.append(Chara(0, 0, 3, 3))
 
 
     self.start()
 
-    pyxel.init(self._width, self._height, title="test", fps=15)
-    pyxel.load("assets/test.pyxres")
     pyxel.run(self.update, self.draw)
 
 
@@ -118,42 +121,50 @@ class App:
     self.player.turn  = 0
     self.player.res_n = 0
 
+
   def update(self):
+    # "Q" for quit
     if pyxel.btnp(pyxel.KEY_Q) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
       pyxel.quit()
 
+    # Gate stop
     if self.isStop:
       return
 
+    # "Up" key
     if pyxel.btn(pyxel.KEY_UP) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
       if self.player.isAlive:
         if self.player.y >= self.player.move_y:
           self.player.y -= self.player.move_y
     
+    # "Down" key
     if pyxel.btn(pyxel.KEY_DOWN) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):
       if self.player.isAlive:
         if self.player.y <= self._height - self.player.height - self.player.move_y:
           self.player.y += self.player.move_y
     
+    # "Left" key
     if pyxel.btn(pyxel.KEY_LEFT) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT):
       if self.player.isAlive:
         if self.player.x >= self.player.move_x:
           self.player.x -= self.player.move_x
     
+    # "Right" key
     if pyxel.btn(pyxel.KEY_RIGHT) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT):
       if self.player.isAlive:
         if self.player.x <= self._width - self.player.width - self.player.move_x:
           self.player.x += self.player.move_x
 
-    # move missile
+    # move missiles
     for i in range(0, self.p_miss_max):
       if self.p_miss_f[i] :
         if self.p_miss[i].x > self._width:
           self.p_miss_f[i] = False
         else:
           self.p_miss[i].x += self.p_miss[i].move_x
+          self.p_miss[i].y += self.p_miss[i].move_y
 
-    # Z : fire
+    # "Z" key for fire
     if pyxel.btnp(pyxel.KEY_Z) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A):
       if self.player.isAlive:
         nm = -1
@@ -166,7 +177,7 @@ class App:
           self.p_miss[nm].x = self.player.x + self.playerres.fire_x[self.player.res_n]
           self.p_miss[nm].y = self.player.y + self.playerres.fire_y[self.player.res_n]
 
-    # player
+    # change player resource
     if self.player.turn % 5 == 0:
       if self.player.isAlive:
         self.player.res_n += 1
@@ -179,7 +190,7 @@ class App:
 
     self.player.turn += 1
     
-    # enemy missles
+    # move enemy missiles
     for i in range(0, self.enemymiss_max):
       if self.enemymiss_f[i]:
         self.enemymiss[i].x += self.enemymiss[i].move_x
@@ -194,14 +205,14 @@ class App:
         if self.enemymiss[i].y > self._height:
           self.enemymiss_f[i] = False
 
-    # enemy
+    # add enemies
     if self.turn >= 20:
       if random.random() < 0.15:
         for i in range(0, self.enemy_max):
           if not self.enemy_f[i]:
             self.enemy_f[i]           = True
             self.enemylist_n[i]       = random.randrange(0, self.enemylist_max)
-            self.enemy[i].x           = 280
+            self.enemy[i].x           = self._width
             self.enemy[i].y           = random.randrange(50, self._height-50)
             self.enemy[i].turn        = 0
             self.enemy[i].res_n       = 0
@@ -209,12 +220,12 @@ class App:
             self.enemy[i].isAlive     = True
             break
 
+    # move enemies
     for i in range(0, self.enemy_max):
       if self.enemy_f[i] :
         if self.enemy[i].isAlive:
           self.enemy[i].x += self.enemylist[self.enemylist_n[i]].charamove.x[self.enemy[i].charamove_n]
           self.enemy[i].y += self.enemylist[self.enemylist_n[i]].charamove.y[self.enemy[i].charamove_n]
-          #print("enemy %d turn %d move n %d x %d y %d attack %d" %(i, self.enemy[i].turn, self.enemy[i].charamove_n, self.enemylist[self.enemylist_n[i]].charamove.x[self.enemy[i].charamove_n], self.enemylist[self.enemylist_n[i]].charamove.y[self.enemy[i].charamove_n], self.enemylist[self.enemylist_n[i]].charamove.attack[self.enemy[i].charamove_n]))
 
           # fire
           if self.enemylist[self.enemylist_n[i]].charamove.attack[self.enemy[i].charamove_n] == 1:
@@ -225,7 +236,6 @@ class App:
                 break
             if nm != -1:
               self.enemymiss_f[nm] = True
-              #print("enemymiss %d" %(nm))
               self.enemymiss[nm].x = self.enemy[i].x + self.enemylist[self.enemylist_n[i]].fire_x[self.enemy[i].res_n]
               self.enemymiss[nm].y = self.enemy[i].y + self.enemylist[self.enemylist_n[i]].fire_y[self.enemy[i].res_n]
               dx = self.player.x + self.player.width  / 2 - self.enemymiss[nm].x
@@ -256,6 +266,7 @@ class App:
             if self.enemy[i].res_n == self.enemylist[self.enemylist_n[i]].res_max :
               self.enemy[i].res_n = 0
 
+        # when enemies is dead
         else:
           if self.enemy[i].turn % 8 == 0:
             self.enemy[i].res_n += 1
@@ -263,6 +274,7 @@ class App:
               self.enemy_f[i] = False
 
         self.enemy[i].turn  += 1
+
 
     # hit check for player and enemy
     if self.player.isAlive:
@@ -280,12 +292,8 @@ class App:
             self.player.turn    = 1
             self.player.res_n   = 0
             self.player.isAlive = False
-            #print("Hit")
-            #print("  player %d %d %d %d" %(p_llx, p_lly, p_urx, p_ury))
-            #print("  enemy  %d %d %d %d %d" %(i, e_llx, e_lly, e_urx, e_ury))
             #pyxel.rect(p_llx, p_lly, p_urx - p_llx, p_ury - p_lly + 1, 0)
             #pyxel.rect(e_llx, e_lly, e_urx - e_llx, e_ury - e_lly + 1, 0)
-            #self.isStop = True
             break
 
     # hit check for player and enemy missiles
@@ -295,18 +303,12 @@ class App:
         e_lly = self.enemymiss[i].y + self.enemymissres.hita_lly[0]
         e_urx = self.enemymiss[i].x + self.enemymissres.hita_urx[0]
         e_ury = self.enemymiss[i].y + self.enemymissres.hita_ury[0]
-        #print("  player %d %d %d %d" %(p_llx, p_lly, p_urx, p_ury))
-        #print("  enemymiss  %d %d %d %d %d %d %d" %(i, self.enemymiss[i].x, self.enemymiss[i].y, e_llx, e_lly, e_urx, e_ury))
         if max(p_llx, e_llx) <= min(p_urx, e_urx) and max(p_lly, e_lly) <= min(p_ury, e_ury):
           self.player.turn    = 1
           self.player.res_n   = 0
           self.player.isAlive = False
-          #print("Hit")
-          #print("  player %d %d %d %d" %(p_llx, p_lly, p_urx, p_ury))
-          #print("  enemymiss  %d %d %d %d %d %d %d" %(i, self.enemymiss[i].x, self.enemymiss[i].y, e_llx, e_lly, e_urx, e_ury))
           #pyxel.rect(p_llx, p_lly, p_urx - p_llx, p_ury - p_lly + 1, 0)
           #pyxel.rect(e_llx, e_lly, e_urx - e_llx, e_ury - e_lly + 1, 0)
-          #self.isStop = True
           break
 
     # hit check for player missiles and enemy
@@ -329,9 +331,6 @@ class App:
               self.enemy[j].res_n   = 0
               self.enemy[j].isAlive = False
               self.p_miss_f[i]      = False
-              #print("Hit")
-              #print("  miss   %d %d %d %d" %(p_llx, p_lly, p_urx, p_ury))
-              #print("  enemy  %d %d %d %d %d" %(i, e_llx, e_lly, e_urx, e_ury))
               #pyxel.rect(p_llx, p_lly, p_urx - p_llx, p_ury - p_lly + 1, 0)
               #pyxel.rect(e_llx, e_lly, e_urx - e_llx, e_ury - e_lly + 1, 0)
               break
@@ -346,8 +345,8 @@ class App:
 
     pyxel.cls(12)
 
-    pyxel.text(250, 4, "Turn " + str(self.turn).zfill(6), 7)
-    pyxel.text(200, 4, "Hit " + str(self.hit).zfill(4), 7)
+    #pyxel.text(0, 4, "Turn " + str(self.turn).zfill(6), 7)
+    pyxel.text(250, 4, "Hit " + str(self.hit).zfill(4), 7)
 
     # Player missile
     for i in range(0, self.p_miss_max):
