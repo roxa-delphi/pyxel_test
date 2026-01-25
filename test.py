@@ -157,6 +157,15 @@ class App:
         self.gamemode = 1
       return
 
+    # Game over
+    if self.gamemode == 2:
+      if pyxel.btnp(pyxel.KEY_Z) or pyxel.btnp(pyxel.KEY_S) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
+        self.gamemode = 0
+      return
+
+
+    # on play
+
     # "Up" key
     if pyxel.btn(pyxel.KEY_UP) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
       if self.player.isAlive:
@@ -213,7 +222,7 @@ class App:
       else:
         self.player.res_n += 1
         if self.player.res_n == self.playerres.burn_max:
-          self.gamemode     = 0
+          self.gamemode     = 2
           self.player.turn  = 0
           self.player.res_n = 0
           return
@@ -378,7 +387,7 @@ class App:
   def draw(self):
     pyxel.cls(12)
 
-    if self.gamemode == 0:
+    if self.gamemode == 0:	# menu
       pyxel.blt(
         self._width / 2 - self.player.width,
         self._height / 3 - self.player.height,
@@ -394,6 +403,11 @@ class App:
       pyxel.text(110, 150, "Push \"z\" key to start", 7)
       return
 
+    #if self.gamemode == 2:	# game over
+    #  return
+
+
+    # on play
 
     #pyxel.text(0, 4, "Turn " + str(self.turn).zfill(6), 7)
     pyxel.text(250, 4, "Hit " + str(self.hit).zfill(4), 7)
@@ -489,6 +503,9 @@ class App:
         self.playerres.burn_col[self.player.res_n],
       )
 
+    if self.gamemode == 2:
+      pyxel.text(120, 100, str(self.hit) + " hits", 7)
+      pyxel.text(120, 150, "Push \"z\" key", 7)
 
 App()
 
